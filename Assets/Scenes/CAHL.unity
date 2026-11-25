@@ -2433,7 +2433,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2233429505981514176, guid: 093d994e44bd73043850362e6d954a7e, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -1.04
+      value: -0.729
       objectReference: {fileID: 0}
     - target: {fileID: 2233429505981514176, guid: 093d994e44bd73043850362e6d954a7e, type: 3}
       propertyPath: m_LocalPosition.z
@@ -2826,7 +2826,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5825843494815329794, guid: f27745cf1181bd3448644af0f3dec7f4, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -1.0800631
+      value: -0.767
       objectReference: {fileID: 0}
     - target: {fileID: 5825843494815329794, guid: f27745cf1181bd3448644af0f3dec7f4, type: 3}
       propertyPath: m_LocalPosition.z
@@ -3706,7 +3706,7 @@ AudioSource:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1617978344}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
@@ -4069,7 +4069,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8135023674665499069, guid: 58d0a4ac86f2348deb02f3880c71378e, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8518324294302271954, guid: 58d0a4ac86f2348deb02f3880c71378e, type: 3}
       propertyPath: m_LocalPosition.x
@@ -6926,7 +6926,7 @@ MonoBehaviour:
   m_BlockInteractionsWithScreenSpaceUI: 0
   m_BlockUIOnInteractableSelection: 1
   m_ManipulateAttachTransform: 0
-  m_UseForceGrab: 0
+  m_UseForceGrab: 1
   m_RotateSpeed: 180
   m_TranslateSpeed: 0
   m_RotateReferenceFrame: {fileID: 0}
