@@ -1,15 +1,21 @@
-using UnityEngine.XR.Interaction.Toolkit.Inputs.Haptics;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
+using UnityEngine.XR.Interaction.Toolkit.Inputs.Haptics;
 
 [RequireComponent(typeof(XRGrabInteractable))]
 [RequireComponent(typeof(Rigidbody))]
 public class ThrowableBall : MonoBehaviour
 {
-    private bool scoredThisThrow = false;
-    private HapticImpulsePlayer lastHapticPlayer;
+    [Header("Reset")]
+    [SerializeField] private float resetDelay = 1f;
+
+    [Header("Scoring Haptics")]
+    [Range(0f, 1f)]
+    [SerializeField] private float scoreHapticAmplitude = 0.75f;
+    [SerializeField] private float scoreHapticDuration = 0.2f;
+
     private XRGrabInteractable grabInteractable;
     private Rigidbody rb;
 
@@ -17,6 +23,8 @@ public class ThrowableBall : MonoBehaviour
     private Quaternion startingRotation;
     private Transform startingParent;
 
+    private bool scoredThisThrow;
+    private HapticImpulsePlayer lastHapticPlayer;
     private Coroutine resetCoroutine;
 
     private void Awake()
@@ -24,7 +32,7 @@ public class ThrowableBall : MonoBehaviour
         grabInteractable = GetComponent<XRGrabInteractable>();
         rb = GetComponent<Rigidbody>();
 
-        // Remember the original spawn position.
+        // Capture the ball's original pose when the scene starts.
         startingPosition = transform.position;
         startingRotation = transform.rotation;
         startingParent = transform.parent;
@@ -32,47 +40,70 @@ public class ThrowableBall : MonoBehaviour
 
     private void OnEnable()
     {
+        if (grabInteractable == null)
+            grabInteractable = GetComponent<XRGrabInteractable>();
+
         grabInteractable.selectEntered.AddListener(OnGrabbed);
     }
 
     private void OnDisable()
     {
-        grabInteractable.selectEntered.RemoveListener(OnGrabbed);
+        if (grabInteractable != null)
+            grabInteractable.selectEntered.RemoveListener(OnGrabbed);
     }
 
     private void OnGrabbed(SelectEnterEventArgs args)
     {
-        // A new grab allows another scoring attempt.
+        // A new grab starts a new scoring attempt.
         scoredThisThrow = false;
 
+        // Remember the controller that grabbed the ball.
+        // A socket normally has no HapticImpulsePlayer, so don't overwrite
+        // the last controller reference when the socket catches the ball.
+        Transform interactorTransform = args.interactorObject.transform;
+        HapticImpulsePlayer foundPlayer =
+            interactorTransform.GetComponent<HapticImpulsePlayer>();
+
+        if (foundPlayer == null)
+            foundPlayer = interactorTransform.GetComponentInParent<HapticImpulsePlayer>();
+
+        if (foundPlayer != null)
+            lastHapticPlayer = foundPlayer;
+
+        // If the player grabs the ball during its reset delay, cancel the reset.
         if (resetCoroutine != null)
         {
             StopCoroutine(resetCoroutine);
             resetCoroutine = null;
         }
-        // Remember which controller grabbed the ball.
-        Transform hand = args.interactorObject.transform;
 
-        lastHapticPlayer = hand.GetComponent<HapticImpulsePlayer>();
-
-        if (lastHapticPlayer == null)
-        {
-            lastHapticPlayer = hand.GetComponentInParent<HapticImpulsePlayer>();
-        }
-
-        if (lastHapticPlayer == null)
-        {
-            Debug.LogWarning("No HapticImpulsePlayer found on grabbing hand!");
-        }
+        Debug.Log("Ball grabbed - new throw enabled.");
     }
 
     public bool TryRegisterScore()
     {
         if (scoredThisThrow)
+        {
+            Debug.Log("This throw has already scored.");
             return false;
+        }
 
         scoredThisThrow = true;
         return true;
+    }
+
+    public void PlayScoreHaptic()
+    {
+        if (lastHapticPlayer == null)
+        {
+            Debug.Log("No controller HapticImpulsePlayer was recorded for this throw.");
+            return;
+        }
+
+        lastHapticPlayer.SendHapticImpulse(
+            scoreHapticAmplitude,
+            scoreHapticDuration
+        );
     }
 
     public void ResetToStart()
@@ -83,54 +114,30 @@ public class ThrowableBall : MonoBehaviour
         resetCoroutine = StartCoroutine(ResetBallRoutine());
     }
 
-
     private IEnumerator ResetBallRoutine()
     {
-        // Wait briefly after scoring.
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(resetDelay);
 
+        // Do not teleport a ball while it is still being held by a controller.
         if (grabInteractable.isSelected)
         {
             resetCoroutine = null;
             yield break;
         }
 
-        // Stop all movement.
+        // Restore its original parent and pose, and clear all physics motion.
+        transform.SetParent(startingParent, true);
         rb.linearVelocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
 
-        // Restore original parent.
-        transform.SetParent(startingParent, true);
-
-        // Reset the physics position.
         rb.position = startingPosition;
         rb.rotation = startingRotation;
+        transform.SetPositionAndRotation(startingPosition, startingRotation);
 
-        // Also reset the visible Transform.
-        transform.SetPositionAndRotation(
-            startingPosition,
-            startingRotation
-        );
-
-        // Synchronise Unity's physics transforms.
         Physics.SyncTransforms();
-
-        rb.Sleep();
+        rb.WakeUp();
 
         resetCoroutine = null;
-
-        Debug.Log("Ball visually and physically reset!");
-    }
-    public void PlayScoreHaptic()
-    {
-        if (lastHapticPlayer == null)
-        {
-            Debug.LogWarning("Cannot play score haptic - no hand recorded!");
-            return;
-        }
-
-        lastHapticPlayer.SendHapticImpulse(0.75f, 0.2f);
-
-        Debug.Log("Scoring haptic sent!");
+        Debug.Log("Ball visually and physically reset to its starting position.");
     }
 }

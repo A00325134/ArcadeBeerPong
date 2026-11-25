@@ -26,6 +26,11 @@ public class TossScoreManager : MonoBehaviour
     [Header("TV Scoreboard")]
     [SerializeField] private ScoreboardUI scoreboardUI;
 
+    [Header("Audio")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip startGameSound;
+    [SerializeField] private AudioClip victorySound;
+
     public int Score => score;
     public GameState CurrentState => currentState;
     public bool IsPlaying => currentState == GameState.Playing;
@@ -45,6 +50,8 @@ public class TossScoreManager : MonoBehaviour
 
         currentState = GameState.Playing;
 
+        PlaySound(startGameSound);
+
         UpdateScoreboard("GAME STARTED - THROW!");
 
         Debug.Log("Game Started!");
@@ -54,14 +61,12 @@ public class TossScoreManager : MonoBehaviour
     {
         score = 0;
 
-        // Restore all six cups.
         foreach (CupTarget cup in cups)
         {
             if (cup != null)
                 cup.ResetCup();
         }
 
-        // Return ball to its starting position.
         if (ball != null)
             ball.ResetToStart();
 
@@ -86,6 +91,8 @@ public class TossScoreManager : MonoBehaviour
             score = winningScore;
             currentState = GameState.Won;
 
+            PlaySound(victorySound);
+
             UpdateScoreboard("YOU WIN!");
 
             Debug.Log("ALL SIX CUPS CLEARED!");
@@ -96,6 +103,14 @@ public class TossScoreManager : MonoBehaviour
         }
 
         return true;
+    }
+
+    private void PlaySound(AudioClip clip)
+    {
+        if (audioSource == null || clip == null)
+            return;
+
+        audioSource.PlayOneShot(clip);
     }
 
     private void UpdateScoreboard(string message)

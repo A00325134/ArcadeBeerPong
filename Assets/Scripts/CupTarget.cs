@@ -1,4 +1,3 @@
-
 using UnityEngine;
 
 [RequireComponent(typeof(Collider))]
@@ -13,18 +12,18 @@ public class CupTarget : MonoBehaviour
 
     [Header("Audio")]
     [SerializeField] private AudioClip cupHitSound;
-
     [Range(0f, 1f)]
     [SerializeField] private float soundVolume = 0.8f;
 
     [Header("Score Manager")]
     [SerializeField] private TossScoreManager scoreManager;
 
-    private bool hasBeenHit = false;
+    private bool hasBeenHit;
 
     private void Reset()
     {
-        GetComponent<Collider>().isTrigger = true;
+        Collider triggerCollider = GetComponent<Collider>();
+        triggerCollider.isTrigger = true;
     }
 
     private void OnTriggerEnter(Collider other)
@@ -32,37 +31,33 @@ public class CupTarget : MonoBehaviour
         if (hasBeenHit)
             return;
 
-        // Only accept our throwable ball.
-        ThrowableBall ball =
-            other.GetComponentInParent<ThrowableBall>();
-
+        ThrowableBall ball = other.GetComponentInParent<ThrowableBall>();
         if (ball == null)
             return;
 
         if (scoreManager == null)
         {
-            Debug.LogError("CupTarget: Score Manager missing!");
+            Debug.LogError("CupTarget: Score Manager reference is missing on " + cupName);
             return;
         }
 
-        // Don't allow scoring before the game starts.
         if (!scoreManager.IsPlaying)
             return;
 
-        // Prevent the same throw from scoring more than once.
         if (!ball.TryRegisterScore())
             return;
 
-        // Award points. Only continue if scoring succeeded.
+        // Only mark this cup as hit if the score manager accepts the points.
         if (!scoreManager.AddPoints(points, cupName))
             return;
 
         hasBeenHit = true;
 
-        // Play scoring haptic on the throwing controller.
+        // Play haptic feedback on the controller that last grabbed the ball.
         ball.PlayScoreHaptic();
 
-        // Play cup hit sound.
+        // Play the sound at the cup's world position. This continues even
+        // after the cup GameObject is disabled.
         if (cupHitSound != null)
         {
             AudioSource.PlayClipAtPoint(
@@ -72,34 +67,27 @@ public class CupTarget : MonoBehaviour
             );
         }
 
-        // Return the ball to its starting position.
+        // Reset the ball and remove this cup from play.
         ball.ResetToStart();
 
-        // Remove the successfully hit cup.
         if (cupToRemove != null)
         {
             cupToRemove.SetActive(false);
-
-            Debug.Log(cupName + " removed!");
+            Debug.Log(cupName + " scored and was removed.");
         }
         else
         {
-            Debug.LogWarning(
-                cupName + " has no removal object assigned!"
-            );
+            Debug.LogWarning("CupTarget: Cup To Remove is not assigned on " + cupName);
         }
     }
 
-    // Restore cup when restarting the game.
     public void ResetCup()
     {
         hasBeenHit = false;
 
         if (cupToRemove != null)
-        {
             cupToRemove.SetActive(true);
-        }
 
-        Debug.Log(cupName + " restored!");
+        Debug.Log(cupName + " restored.");
     }
 }
