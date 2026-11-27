@@ -27,8 +27,6 @@ When the ball successfully enters a cup, the player receives a point, the cup is
 
 I kept the objective simple because I wanted the main focus to be on the VR interactions and making the throwing mechanic work properly.
 
-**Screenshot:** Overall view of the After Hours Arcade environment.
-
 ## 3. VR Setup and Interaction
 
 I used the XR Interaction Toolkit to set up the VR interactions. The baseball uses an `XRGrabInteractable` and a Rigidbody, which allows the player to pick it up and throw it using the VR controller.
@@ -38,10 +36,6 @@ I also used a socket for the ball holder so that the baseball has a starting pla
 I used direct interaction for grabbing the baseball and ray interaction for the UI controls. This lets the player interact with the game without needing to use a keyboard or mouse.
 
 I added start and restart controls that call the relevant functions in my score manager. The scoreboard is displayed on the TV in the arcade environment, so the player can see their score and the current game message while playing.
-
-**Screenshot:** Baseball sitting in the holder/socket.
-
-**Screenshot:** VR controller grabbing the baseball or interacting with the UI.
 
 ## 4. Game State and Scoring System
 
@@ -61,7 +55,6 @@ When the score reaches six, the game changes to the Won state. The scoreboard di
 
 I added a restart function that resets the score, restores all the cups and returns the baseball to its starting position. This means the player can play again without having to reload the whole scene.
 
-**Screenshot:** TV scoreboard showing the score or the winning message.
 
 ## 5. Cup Detection and Scoring
 
@@ -73,7 +66,6 @@ I added this check because I did not want one throw to accidentally score more t
 
 Once the score is accepted, the cup plays its hit sound, sends haptic feedback to the controller and is removed from play. The ball is also sent back to its starting position.
 
-**Screenshot:** Baseball entering one of the cups.
 
 ## 6. Baseball Reset System
 
@@ -107,7 +99,6 @@ This was one of the main extra technical features I worked on because it uses ve
 
 One limitation is that the line is only a prediction of the ball's movement under gravity. It does not fully simulate collisions with the cups or other objects.
 
-**Screenshot:** Trajectory line appearing while the baseball is held.
 
 ## 8. Audio and Haptic Feedback
 
